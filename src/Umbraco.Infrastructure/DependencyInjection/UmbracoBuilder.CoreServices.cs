@@ -3,6 +3,7 @@ using Examine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
@@ -10,7 +11,9 @@ using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.HealthChecks.NotificationMethods;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Install;
+using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Logging.Serilog.Enrichers;
+using Umbraco.Cms.Core.Logging.Viewer;
 using Umbraco.Cms.Core.Mail;
 using Umbraco.Cms.Core.Manifest;
 using Umbraco.Cms.Core.Media;
@@ -53,7 +56,8 @@ namespace Umbraco.Cms.Infrastructure.DependencyInjection
         {
             builder
                 .AddMainDom()
-                .AddLogging();
+                .AddLogging()
+                .AddLogViewer();
 
             builder.Services.AddUnique<IUmbracoDatabaseFactory, UmbracoDatabaseFactory>();
             builder.Services.AddUnique(factory => factory.GetRequiredService<IUmbracoDatabaseFactory>().CreateDatabase());
@@ -187,6 +191,21 @@ namespace Umbraco.Cms.Infrastructure.DependencyInjection
             builder.Services.AddUnique<HttpSessionIdEnricher>();
             builder.Services.AddUnique<HttpRequestNumberEnricher>();
             builder.Services.AddUnique<HttpRequestIdEnricher>();
+            return builder;
+        }
+
+        private static IUmbracoBuilder AddLogViewer(this IUmbracoBuilder builder)
+        {
+            builder.Services.AddUnique<ILogViewerConfig, LogViewerConfig>();
+            builder.SetLogViewer<SerilogJsonLogViewer>();
+            builder.Services.AddUnique<ILogViewer>(factory =>
+            {
+
+                return new SerilogJsonLogViewer(factory.GetRequiredService<ILogger<SerilogJsonLogViewer>>(),
+                    factory.GetRequiredService<ILogViewerConfig>(),
+                    factory.GetRequiredService<ILoggingConfiguration>(),
+                    Log.Logger);
+            } );
             return builder;
         }
 
