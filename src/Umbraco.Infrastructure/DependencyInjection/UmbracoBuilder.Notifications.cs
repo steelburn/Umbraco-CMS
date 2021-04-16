@@ -1,8 +1,6 @@
-// Copyright (c) Umbraco.
-// See LICENSE for more details.
-
+using System;
 using Umbraco.Cms.Core.Cache;
-using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.Compose;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.PropertyEditors;
@@ -10,36 +8,23 @@ using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services.Notifications;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Core.Compose
+namespace Umbraco.Cms.Infrastructure.DependencyInjection
 {
-    public sealed class NotificationsComposer : ICoreComposer
+    public static partial class UmbracoBuilderExtensions
     {
-        public void Compose(IUmbracoBuilder builder)
+        public static IUmbracoBuilder AddContentRelationNotifications(this IUmbracoBuilder builder)
         {
-            // add handlers for sending user notifications (i.e. emails)
-            builder.Services.AddUnique<UserNotificationsHandler.Notifier>();
-            builder
-                .AddNotificationHandler<ContentSavedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentSortedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentPublishedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentMovedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentMovedToRecycleBinNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentCopiedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentRolledBackNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentSentToPublishNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<ContentUnpublishedNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<AssignedUserGroupPermissionsNotification, UserNotificationsHandler>()
-                .AddNotificationHandler<PublicAccessEntrySavedNotification, UserNotificationsHandler>();
-
-            // add handlers for building content relations
             builder
                 .AddNotificationHandler<ContentCopiedNotification, RelateOnCopyNotificationHandler>()
                 .AddNotificationHandler<ContentMovedNotification, RelateOnTrashNotificationHandler>()
                 .AddNotificationHandler<ContentMovedToRecycleBinNotification, RelateOnTrashNotificationHandler>()
                 .AddNotificationHandler<MediaMovedNotification, RelateOnTrashNotificationHandler>()
                 .AddNotificationHandler<MediaMovedToRecycleBinNotification, RelateOnTrashNotificationHandler>();
+            return builder;
+        }
 
-            // add notification handlers for property editors
+        public static IUmbracoBuilder AddPropertyEditorNotifications(this IUmbracoBuilder builder)
+        {
             builder
                 .AddNotificationHandler<ContentSavingNotification, BlockEditorPropertyHandler>()
                 .AddNotificationHandler<ContentCopyingNotification, BlockEditorPropertyHandler>()
@@ -56,14 +41,21 @@ namespace Umbraco.Cms.Core.Compose
                 .AddNotificationHandler<MediaSavingNotification, ImageCropperPropertyEditor>()
                 .AddNotificationHandler<MemberDeletedNotification, ImageCropperPropertyEditor>();
 
-            // add notification handlers for redirect tracking
+            return builder;
+        }
+
+        public static IUmbracoBuilder AddRedirectTrackingNotifications(this IUmbracoBuilder builder)
+        {
             builder
                 .AddNotificationHandler<ContentPublishingNotification, RedirectTrackingHandler>()
                 .AddNotificationHandler<ContentPublishedNotification, RedirectTrackingHandler>()
                 .AddNotificationHandler<ContentMovingNotification, RedirectTrackingHandler>()
                 .AddNotificationHandler<ContentMovedNotification, RedirectTrackingHandler>();
+            return builder;
+        }
 
-            // Add notification handlers for DistributedCache
+        public static IUmbracoBuilder AddDistributedCacheNotifications(this IUmbracoBuilder builder)
+        {
             builder
                 .AddNotificationHandler<DictionaryItemDeletedNotification, DistributedCacheBinder>()
                 .AddNotificationHandler<DictionaryItemSavedNotification, DistributedCacheBinder>()
@@ -90,9 +82,13 @@ namespace Umbraco.Cms.Core.Compose
                 .AddNotificationHandler<MacroSavedNotification, DistributedCacheBinder>()
                 .AddNotificationHandler<MacroDeletedNotification, DistributedCacheBinder>()
                 .AddNotificationHandler<MediaTreeChangeNotification, DistributedCacheBinder>()
-                .AddNotificationHandler<ContentTreeChangeNotification, DistributedCacheBinder>()
-                ;
-            // add notification handlers for auditing
+                .AddNotificationHandler<ContentTreeChangeNotification, DistributedCacheBinder>();
+
+            return builder;
+        }
+
+        public static IUmbracoBuilder AddAuditNotifications(this IUmbracoBuilder builder)
+        {
             builder
                 .AddNotificationHandler<MemberSavedNotification, AuditNotificationsHandler>()
                 .AddNotificationHandler<MemberDeletedNotification, AuditNotificationsHandler>()
@@ -103,6 +99,19 @@ namespace Umbraco.Cms.Core.Compose
                 .AddNotificationHandler<UserDeletedNotification, AuditNotificationsHandler>()
                 .AddNotificationHandler<UserGroupWithUsersSavedNotification, AuditNotificationsHandler>()
                 .AddNotificationHandler<AssignedUserGroupPermissionsNotification, AuditNotificationsHandler>();
+            return builder;
         }
+
+        public static IUmbracoBuilder AddInfrastructureNotifications(this IUmbracoBuilder builder)
+        {
+            builder
+                .AddContentRelationNotifications()
+                .AddPropertyEditorNotifications()
+                .AddRedirectTrackingNotifications()
+                .AddDistributedCacheNotifications()
+                .AddAuditNotifications();
+            return builder;
+        }
+
     }
 }

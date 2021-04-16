@@ -172,6 +172,9 @@ namespace Umbraco.Cms.Infrastructure.DependencyInjection
             builder.Services.AddUnique<IBackgroundTaskQueue, BackgroundTaskQueue>();
             builder.Services.AddUnique<TaskHelper>();
 
+            // Notifications
+            builder.AddInfrastructureNotifications();
+
             return builder;
         }
 

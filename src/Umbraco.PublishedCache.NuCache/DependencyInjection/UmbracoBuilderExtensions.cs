@@ -5,6 +5,7 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Notifications;
 using Umbraco.Cms.Infrastructure.PublishedCache;
 using Umbraco.Cms.Infrastructure.PublishedCache.Persistence;
 
@@ -52,6 +53,15 @@ namespace Umbraco.Extensions
             // add the NuCache health check (hidden from type finder)
             // TODO: no NuCache health check yet
             // composition.HealthChecks().Add<NuCacheIntegrityHealthCheck>();
+
+            // Add notifications
+            builder.AddNuCacheNotifications();
+            return builder;
+        }
+
+        public static IUmbracoBuilder AddNuCacheNotifications(this IUmbracoBuilder builder)
+        {
+            builder.AddNotificationHandler<LanguageSavedNotification, PublishedSnapshotServiceEventHandler>();
             return builder;
         }
     }

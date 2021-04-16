@@ -219,6 +219,8 @@ namespace Umbraco.Cms.Core.DependencyInjection
             // which may be replaced by models builder but the default is required to make plain old IPublishedContent
             // instances.
             Services.AddSingleton<IPublishedModelFactory>(factory => factory.CreateDefaultPublishedModelFactory());
+
+            this.AddCoreNotifications();
         }
     }
 }
