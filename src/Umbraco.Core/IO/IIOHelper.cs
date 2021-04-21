@@ -54,6 +54,8 @@ namespace Umbraco.Cms.Core.IO
         /// <returns></returns>
         string GetRelativePath(string path);
 
+        string GetRelativeWebPath(string fullPathOrUrl, string virtualRoot);
+
         /// <summary>
         /// Retrieves array of temporary folders from the hosting environment.
         /// </summary>

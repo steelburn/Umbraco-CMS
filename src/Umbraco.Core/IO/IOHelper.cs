@@ -228,5 +228,28 @@ namespace Umbraco.Cms.Core.IO
                 ? CleanFolderResult.FailedWithErrors(errors)
                 : CleanFolderResult.Success();
         }
+
+        public string GetRelativeWebPath(string fullPathOrUrl, string virtualRoot)
+        {
+            var rootUrl = _hostingEnvironment.ToAbsolute(virtualRoot);
+            var rootPath = _hostingEnvironment.MapPathWebRoot(virtualRoot);
+
+            // Ensure separator char for rootpath
+            rootPath = rootPath.Replace('\\', '/');
+
+            var path = fullPathOrUrl.Replace('\\', '/'); // ensure URL separator char
+
+            if (PathStartsWith(path, rootUrl, '/'))
+            {
+                return path.Substring(rootUrl.Length).TrimStart(Constants.CharArrays.ForwardSlash);
+            }
+
+            if (PathStartsWith(path, rootPath, '/'))
+            {
+                return path.Substring(rootPath.Length).TrimStart(Constants.CharArrays.ForwardSlash);
+            }
+
+            return path;
+        }
     }
 }

@@ -37,32 +37,32 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
     public class CodeFileController : BackOfficeNotificationsController
     {
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly IFileSystems _fileSystems;
         private readonly IFileService _fileService;
         private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
 
         private readonly ILocalizedTextService _localizedTextService;
         private readonly IUmbracoMapper _umbracoMapper;
         private readonly IShortStringHelper _shortStringHelper;
+        private readonly IIOHelper _ioHelper;
         private readonly GlobalSettings _globalSettings;
 
         public CodeFileController(
             IHostingEnvironment hostingEnvironment,
-            IFileSystems fileSystems,
             IFileService fileService,
             IBackOfficeSecurityAccessor backOfficeSecurityAccessor,
             ILocalizedTextService localizedTextService,
             IUmbracoMapper umbracoMapper,
             IShortStringHelper shortStringHelper,
-            IOptions<GlobalSettings> globalSettings)
+            IOptions<GlobalSettings> globalSettings,
+            IIOHelper ioHelper)
         {
             _hostingEnvironment = hostingEnvironment;
-            _fileSystems = fileSystems;
             _fileService = fileService;
             _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
             _localizedTextService = localizedTextService;
             _umbracoMapper = umbracoMapper;
             _shortStringHelper = shortStringHelper;
+            _ioHelper = ioHelper;
             _globalSettings = globalSettings.Value;
         }
 
@@ -535,7 +535,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
         /// </remarks>
         private IScript CreateOrUpdateScript(CodeFileDisplay display)
         {
-            return CreateOrUpdateFile(display, ".js", _fileSystems.ScriptsFileSystem,
+            return CreateOrUpdateFile(display, ".js", _globalSettings.UmbracoScriptsPath,
                 name => _fileService.GetScriptByName(name),
                 (script, userId) => _fileService.SaveScript(script, userId),
                 name => new Script(name));
@@ -543,14 +543,14 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
 
         private IStylesheet CreateOrUpdateStylesheet(CodeFileDisplay display)
         {
-            return CreateOrUpdateFile(display, ".css", _fileSystems.StylesheetsFileSystem,
+            return CreateOrUpdateFile(display, ".css", _globalSettings.UmbracoCssPath,
                 name => _fileService.GetStylesheetByName(name),
                 (stylesheet, userId) => _fileService.SaveStylesheet(stylesheet, userId),
                 name => new Stylesheet(name)
             );
         }
 
-        private T CreateOrUpdateFile<T>(CodeFileDisplay display, string extension, IFileSystem fileSystem,
+        private T CreateOrUpdateFile<T>(CodeFileDisplay display, string extension, string virtualRoot,
             Func<string, T> getFileByName, Action<T, int> saveFile, Func<string, T> createFile) where T : IFile
         {
             //must always end with the correct extension
@@ -558,7 +558,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
 
             var virtualPath = display.VirtualPath ?? string.Empty;
             // this is all weird, should be using relative paths everywhere!
-            var relPath = fileSystem.GetRelativePath(virtualPath);
+            var relPath = _ioHelper.GetRelativeWebPath(virtualPath, virtualRoot);
 
             if (relPath.EndsWith(extension) == false)
             {
