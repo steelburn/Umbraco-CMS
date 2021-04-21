@@ -12,7 +12,7 @@ using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Events;
-using Umbraco.Cms.Core.IO;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence;
 using Umbraco.Cms.Core.Persistence.Querying;
@@ -49,9 +49,8 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
 
         private IDataTypeService DataTypeService => GetRequiredService<IDataTypeService>();
 
-        private IFileSystems FileSystems => GetRequiredService<IFileSystems>();
-
         private IConfigurationEditorJsonSerializer ConfigurationEditorJsonSerializer => GetRequiredService<IConfigurationEditorJsonSerializer>();
+        private IHostingEnvironment HostingEnvironment => GetRequiredService<IHostingEnvironment>();
 
         [SetUp]
         public void SetUpData()
@@ -113,7 +112,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
 
             appCaches ??= AppCaches;
 
-            templateRepository = new TemplateRepository(scopeAccessor, appCaches, LoggerFactory.CreateLogger<TemplateRepository>(), FileSystems, IOHelper, ShortStringHelper);
+            templateRepository = new TemplateRepository(scopeAccessor, appCaches, LoggerFactory, IOHelper, ShortStringHelper, HostingEnvironment);
             var tagRepository = new TagRepository(scopeAccessor, appCaches, LoggerFactory.CreateLogger<TagRepository>());
             var commonRepository = new ContentTypeCommonRepository(scopeAccessor, templateRepository, appCaches, ShortStringHelper);
             var languageRepository = new LanguageRepository(scopeAccessor, appCaches, LoggerFactory.CreateLogger<LanguageRepository>(), globalSettings);

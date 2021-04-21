@@ -39,7 +39,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
         private IFileSystems FileSystems => GetRequiredService<IFileSystems>();
 
         private ITemplateRepository CreateRepository(IScopeProvider provider) =>
-            new TemplateRepository((IScopeAccessor)provider, AppCaches.Disabled, LoggerFactory.CreateLogger<TemplateRepository>(), FileSystems, IOHelper, ShortStringHelper);
+            new TemplateRepository((IScopeAccessor)provider, AppCaches.Disabled, LoggerFactory, IOHelper, ShortStringHelper, HostingEnvironment);
 
         [Test]
         public void Can_Instantiate_Repository()

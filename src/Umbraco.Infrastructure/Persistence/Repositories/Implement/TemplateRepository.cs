@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NPoco;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Entities;
@@ -30,12 +32,21 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
         private readonly IFileSystem _viewsFileSystem;
         private readonly ViewHelper _viewHelper;
 
-        public TemplateRepository(IScopeAccessor scopeAccessor, AppCaches cache, ILogger<TemplateRepository> logger, IFileSystems fileSystems,  IIOHelper ioHelper, IShortStringHelper shortStringHelper)
-            : base(scopeAccessor, cache, logger)
+        public TemplateRepository(
+            IScopeAccessor scopeAccessor,
+            AppCaches cache,
+            ILoggerFactory loggerFactory,
+            IIOHelper ioHelper,
+            IShortStringHelper shortStringHelper,
+            IHostingEnvironment hostingEnvironment)
+            : base(scopeAccessor, cache, loggerFactory.CreateLogger<TemplateRepository>())
         {
             _ioHelper = ioHelper;
             _shortStringHelper = shortStringHelper;
-            _viewsFileSystem = fileSystems.MvcViewsFileSystem;
+            _viewsFileSystem = new PhysicalFileSystem(ioHelper, hostingEnvironment,
+                loggerFactory.CreateLogger<PhysicalFileSystem>(),
+                hostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.MvcViews),
+                hostingEnvironment.ToAbsolute(Constants.SystemDirectories.MvcViews));
             _viewHelper = new ViewHelper(_viewsFileSystem);
         }
 

@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Mapping;
 using Umbraco.Cms.Core.Models;
@@ -49,6 +49,8 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
 
         private ContentTypeRepository ContentTypeRepository => (ContentTypeRepository)GetRequiredService<IContentTypeRepository>();
 
+        private IHostingEnvironment HostingEnvironment => GetRequiredService<IHostingEnvironment>();
+
         [SetUp]
         public void SetUpData() => CreateTestData();
 
@@ -73,7 +75,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
             IScopeProvider provider = ScopeProvider;
             using (IScope scope = provider.CreateScope())
             {
-                var templateRepo = new TemplateRepository((IScopeAccessor)provider, AppCaches.Disabled, LoggerFactory.CreateLogger<TemplateRepository>(), FileSystems, IOHelper, ShortStringHelper);
+                var templateRepo = new TemplateRepository((IScopeAccessor)provider, AppCaches.Disabled, LoggerFactory, IOHelper, ShortStringHelper, HostingEnvironment);
                 ContentTypeRepository repository = ContentTypeRepository;
                 Template[] templates = new[]
                 {
