@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Entities;
@@ -12,12 +14,24 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
     internal abstract class FileRepository<TId, TEntity> : IReadRepository<TId, TEntity>, IWriteRepository<TEntity>
         where TEntity : IFile
     {
-        protected FileRepository(IFileSystem fileSystem)
+        protected FileRepository(
+            IIOHelper ioHelper,
+            IHostingEnvironment hostingEnvironment,
+            ILoggerFactory loggerFactory,
+            string rootPath,
+            string rootUrl
+            )
         {
-            FileSystem = fileSystem;
+            FileSystem = new PhysicalFileSystem(ioHelper, hostingEnvironment,
+                loggerFactory.CreateLogger<PhysicalFileSystem>(), rootPath, rootUrl);
         }
 
         protected IFileSystem FileSystem { get; }
+
+        /// <summary>
+        /// Only used for testing, it's needed to purge the filesystem of test files after tests has run.
+        /// </summary>
+        internal IFileSystem InnerFileSystem => FileSystem;
 
         public virtual void AddFolder(string folderPath)
         {

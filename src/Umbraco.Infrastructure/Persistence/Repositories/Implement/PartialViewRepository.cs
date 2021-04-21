@@ -2,6 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Repositories;
@@ -13,14 +16,16 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
     {
         private readonly IIOHelper _ioHelper;
 
-        public PartialViewRepository(IFileSystems fileSystems, IIOHelper ioHelper)
-            : base(fileSystems.PartialViewsFileSystem)
+        public PartialViewRepository(IIOHelper ioHelper, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
+            : base(ioHelper, hostingEnvironment, loggerFactory,
+                hostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.PartialViews),
+                hostingEnvironment.ToAbsolute(Constants.SystemDirectories.PartialViews))
         {
             _ioHelper = ioHelper;
         }
 
-        protected PartialViewRepository(IFileSystem fileSystem, IIOHelper ioHelper)
-            : base(fileSystem)
+        protected PartialViewRepository(IIOHelper ioHelper, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory, string rootPath, string rootUrl)
+            : base(ioHelper, hostingEnvironment, loggerFactory, rootPath, rootUrl)
         {
             _ioHelper = ioHelper;
         }

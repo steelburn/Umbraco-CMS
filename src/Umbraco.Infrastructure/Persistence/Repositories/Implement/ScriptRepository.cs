@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Repositories;
@@ -19,8 +21,10 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
         private readonly IIOHelper _ioHelper;
         private readonly GlobalSettings _globalSettings;
 
-        public ScriptRepository(IFileSystems fileSystems, IIOHelper ioHelper, IOptions<GlobalSettings> globalSettings)
-            : base(fileSystems.ScriptsFileSystem)
+        public ScriptRepository(IIOHelper ioHelper, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory, IOptions<GlobalSettings> globalSettings)
+            : base(ioHelper, hostingEnvironment, loggerFactory,
+                hostingEnvironment.MapPathWebRoot(globalSettings.Value.UmbracoScriptsPath),
+                hostingEnvironment.ToAbsolute(globalSettings.Value.UmbracoScriptsPath))
         {
             _ioHelper = ioHelper ?? throw new ArgumentNullException(nameof(ioHelper));
             _globalSettings = globalSettings.Value;

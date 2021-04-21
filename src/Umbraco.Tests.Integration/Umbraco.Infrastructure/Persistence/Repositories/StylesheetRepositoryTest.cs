@@ -25,18 +25,12 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
     [UmbracoTest(Database = UmbracoTestOptions.Database.None, Logger = UmbracoTestOptions.Logger.Console)]
     public class StylesheetRepositoryTest : UmbracoIntegrationTest
     {
-        private IFileSystems _fileSystems;
         private IFileSystem _fileSystem;
 
         private IHostingEnvironment HostingEnvironment => GetRequiredService<IHostingEnvironment>();
 
-        [SetUp]
         public void SetUpFileSystem()
         {
-            _fileSystems = Mock.Of<IFileSystems>();
-            string path = HostingEnvironment.MapPathWebRoot(GlobalSettings.UmbracoCssPath);
-            _fileSystem = new PhysicalFileSystem(IOHelper, HostingEnvironment, GetRequiredService<ILogger<PhysicalFileSystem>>(), path, "/css");
-            Mock.Get(_fileSystems).Setup(x => x.StylesheetsFileSystem).Returns(_fileSystem);
             Stream stream = CreateStream("body {background:#EE7600; color:#FFF;}");
             _fileSystem.AddFile("styles.css", stream);
         }
@@ -52,7 +46,10 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
         private IStylesheetRepository CreateRepository()
         {
             var globalSettings = new GlobalSettings();
-            return new StylesheetRepository(GetRequiredService<ILogger<StylesheetRepository>>(), _fileSystems, IOHelper, Microsoft.Extensions.Options.Options.Create(globalSettings));
+            var repository = new StylesheetRepository(LoggerFactory, IOHelper, HostingEnvironment, Microsoft.Extensions.Options.Options.Create(globalSettings));
+            _fileSystem = repository.InnerFileSystem;
+            SetUpFileSystem();
+            return repository;
         }
 
         [Test]

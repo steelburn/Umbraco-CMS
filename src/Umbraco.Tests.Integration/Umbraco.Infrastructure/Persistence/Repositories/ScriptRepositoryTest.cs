@@ -27,16 +27,10 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
     {
         private IHostingEnvironment HostingEnvironment => GetRequiredService<IHostingEnvironment>();
 
-        private IFileSystems _fileSystems;
         private IFileSystem _fileSystem;
 
-        [SetUp]
         public void SetUpFileSystem()
         {
-            _fileSystems = Mock.Of<IFileSystems>();
-            string path = GlobalSettings.UmbracoScriptsPath;
-            _fileSystem = new PhysicalFileSystem(IOHelper, HostingEnvironment, LoggerFactory.CreateLogger<PhysicalFileSystem>(), HostingEnvironment.MapPathWebRoot(path), HostingEnvironment.ToAbsolute(path));
-            Mock.Get(_fileSystems).Setup(x => x.ScriptsFileSystem).Returns(_fileSystem);
             using (Stream stream = CreateStream("Umbraco.Sys.registerNamespace(\"Umbraco.Utils\");"))
             {
                 _fileSystem.AddFile("test-script.js", stream);
@@ -47,14 +41,18 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
         public void TearDownFileSystem()
         {
             // Delete all files
-            Purge(_fileSystems.ScriptsFileSystem, string.Empty);
-            _fileSystems = null;
+            Purge(_fileSystem, string.Empty);
+            _fileSystem = null;
         }
 
         private IScriptRepository CreateRepository()
         {
             var globalSettings = new GlobalSettings();
-            return new ScriptRepository(_fileSystems, IOHelper, Microsoft.Extensions.Options.Options.Create(globalSettings));
+            var repository = new ScriptRepository(IOHelper, HostingEnvironment, LoggerFactory, Microsoft.Extensions.Options.Options.Create(globalSettings));
+            _fileSystem = repository.InnerFileSystem;
+            SetUpFileSystem();
+            return repository;
+
         }
 
         [Test]

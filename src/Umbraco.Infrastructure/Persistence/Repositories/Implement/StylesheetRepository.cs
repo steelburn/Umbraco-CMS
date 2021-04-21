@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Repositories;
@@ -21,10 +22,12 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
         private readonly IIOHelper _ioHelper;
         private readonly GlobalSettings _globalSettings;
 
-        public StylesheetRepository(ILogger<StylesheetRepository> logger, IFileSystems fileSystems, IIOHelper ioHelper, IOptions<GlobalSettings> globalSettings)
-            : base(fileSystems.StylesheetsFileSystem)
+        public StylesheetRepository(ILoggerFactory loggerFactory, IIOHelper ioHelper, IHostingEnvironment hostingEnvironment, IOptions<GlobalSettings> globalSettings)
+            : base(ioHelper, hostingEnvironment, loggerFactory,
+                hostingEnvironment.MapPathWebRoot(globalSettings.Value.UmbracoCssPath),
+                hostingEnvironment.ToAbsolute(globalSettings.Value.UmbracoCssPath))
         {
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger<StylesheetRepository>();
             _ioHelper = ioHelper;
             _globalSettings = globalSettings.Value;
         }

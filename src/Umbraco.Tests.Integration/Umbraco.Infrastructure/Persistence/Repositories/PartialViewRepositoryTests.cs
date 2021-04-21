@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Extensions.Logging;
-using Moq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
@@ -14,7 +12,6 @@ using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
-using Constants = Umbraco.Cms.Core.Constants;
 
 namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repositories
 {
@@ -25,10 +22,6 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
         private IHostingEnvironment HostingEnvironment => GetRequiredService<IHostingEnvironment>();
 
         private IFileSystem _fileSystem;
-
-        [SetUp]
-        public void SetUp() =>
-            _fileSystem = new PhysicalFileSystem(IOHelper, HostingEnvironment, LoggerFactory.CreateLogger<PhysicalFileSystem>(), HostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.PartialViews), HostingEnvironment.ToAbsolute(Constants.SystemDirectories.PartialViews));
 
         [TearDown]
         public void TearDownFiles()
@@ -41,14 +34,13 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repos
         [Test]
         public void PathTests()
         {
-            // unless noted otherwise, no changes / 7.2.8
-            IFileSystems fileSystems = Mock.Of<IFileSystems>();
-            Mock.Get(fileSystems).Setup(x => x.PartialViewsFileSystem).Returns(_fileSystem);
 
             IScopeProvider provider = ScopeProvider;
             using (IScope scope = provider.CreateScope())
             {
-                var repository = new PartialViewRepository(fileSystems, IOHelper);
+                var repository = new PartialViewRepository(IOHelper, HostingEnvironment, LoggerFactory);
+                // Get the filesystem so we can purge it later
+                _fileSystem = repository.InnerFileSystem;
 
                 var partialView = new PartialView(PartialViewType.PartialView, "test-path-1.cshtml") { Content = "// partialView" };
                 repository.Save(partialView);
