@@ -33,7 +33,7 @@
     /**
      * Facade to angular.extend
      * Use this with Angular objects, for vanilla JS objects, use Object.assign()
-     * This is an alias as it to allow passing an unknown number of arguments
+     * This is an alias as it allows passing an unknown number of arguments
      */
     const extend = angular.extend;
 
