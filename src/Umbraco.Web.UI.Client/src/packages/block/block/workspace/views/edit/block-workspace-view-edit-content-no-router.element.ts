@@ -15,10 +15,10 @@ import type { UmbWorkspaceViewElement } from '@umbraco-cms/backoffice/workspace'
 @customElement('umb-block-workspace-view-edit-content-no-router')
 export class UmbBlockWorkspaceViewEditContentNoRouterElement extends UmbLitElement implements UmbWorkspaceViewElement {
 	@state()
-	private _hasRootProperties = false;
+	private _hasRootProperties?: boolean;
 
 	@state()
-	private _hasRootGroups = false;
+	private _hasRootGroups?: boolean;
 
 	@state()
 	private _tabs?: Array<UmbPropertyTypeContainerMergedModel>;
@@ -70,7 +70,14 @@ export class UmbBlockWorkspaceViewEditContentNoRouterElement extends UmbLitEleme
 	}
 
 	#checkDefaultTabName() {
-		if (!this._tabs || !this.#blockWorkspace) return;
+		if (
+			!this._tabs ||
+			!this.#blockWorkspace ||
+			this._hasRootGroups === undefined ||
+			this._hasRootProperties === undefined
+		) {
+			return;
+		}
 
 		// Find the default tab to grab
 		if (this._activeTabKey === undefined) {
